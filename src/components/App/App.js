@@ -11,23 +11,19 @@ import CurrentUserContext from "../../context/CurrentUserContext";
 import mainApi from "../../utils/MainApi";
 import Profile from "../Profile/Profile";
 import ProtectedRoute from "../user/ProtectedRoute/ProtectedRoute";
-import GuestPath from "../user/GuestPath/GuestPath";
 
 function App() {
-  const [currentUser, setCurrentUser] = useState();
+  // Установка начальных значений для текущего пользователя и состояния входа
+  const [currentUser, setCurrentUser] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Удалить все сохранённые элементы из localStorage
-  const clearLocalStorage = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("searchText");
-    localStorage.removeItem("areMoviesSelected");
-    localStorage.removeItem("foundMovies");
-  };
+  // Авторизация при открытии страницы
+  useEffect(() => {
+    checkToken();
+  }, []);
 
-  // Проверка токена асинхронно
-  const checkToken = async () => {
+  async function checkToken() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     if (token) {
@@ -36,36 +32,42 @@ function App() {
         mainApi.setToken(token);
         setCurrentUser(res);
       } catch (err) {
-        clearLocalStorage();
-        setCurrentUser(null);
-        navigate("/");
+        handleTokenError();
         console.error(err);
       }
     }
     setIsLoading(false);
-  };
+  }
 
-  // Инициализация проверки токена при монтировании компонента
-  useEffect(() => {
-    checkToken();
-  }, []);
+  // Обработка ошибки при проверке токена
+  function handleTokenError() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("searchText");
+    localStorage.removeItem("areMoviesSelected");
+    localStorage.removeItem("foundMovies");
+    setCurrentUser(null);
+    navigate("/");
+  }
 
-  const handleLogin = ({ token }) => {
+  function handleLogin({ token }) {
     localStorage.setItem("token", token);
     mainApi.setToken(token);
     checkToken(token);
     navigate("/movies");
-  };
+  }
 
-  const handleUpdateUserInfo = (res) => {
-    setCurrentUser(res);
-  };
-
-  const handleLogOut = () => {
-    clearLocalStorage();
+  function handleLogOut() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("searchText");
+    localStorage.removeItem("areMoviesSelected");
+    localStorage.removeItem("foundMovies");
     setCurrentUser(null);
     navigate("/");
-  };
+  }
+
+  function handleUpdateUserInfo(res) {
+    setCurrentUser(res);
+  }
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
@@ -75,7 +77,7 @@ function App() {
           <Route
             path="/movies"
             element={
-              <ProtectedRoute isLoading={isLoading}>
+              <ProtectedRoute isLoading={isLoading} redirectPath="/">
                 <Movies />
               </ProtectedRoute>
             }
@@ -83,7 +85,7 @@ function App() {
           <Route
             path="/saved-movies"
             element={
-              <ProtectedRoute isLoading={isLoading}>
+              <ProtectedRoute isLoading={isLoading} redirectPath="/">
                 <SavedMovies />
               </ProtectedRoute>
             }
@@ -91,7 +93,7 @@ function App() {
           <Route
             path="/profile"
             element={
-              <ProtectedRoute isLoading={isLoading}>
+              <ProtectedRoute isLoading={isLoading} redirectPath="/">
                 <Profile
                   onLogout={handleLogOut}
                   onUpdate={handleUpdateUserInfo}
@@ -99,22 +101,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/signup"
-            element={
-              <GuestPath isLoading={isLoading}>
-                <Register onLogin={handleLogin} />
-              </GuestPath>
-            }
-          />
-          <Route
-            path="/signin"
-            element={
-              <GuestPath isLoading={isLoading}>
-                <Login onLogin={handleLogin} />
-              </GuestPath>
-            }
-          />
+          <Route path="/signup" element={<Register onLogin={handleLogin} />} />
+          <Route path="/signin" element={<Login onLogin={handleLogin} />} />
           <Route path="*" element={<Page404 />} />
         </Routes>
       </div>

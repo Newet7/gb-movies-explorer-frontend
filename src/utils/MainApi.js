@@ -21,43 +21,39 @@ class MainApi {
     }
   }
 
-  isLoading() {
-    return this._loading;
-  }
-
   async register({ email, password, name }) {
-    this._loading = true;
     const url = `${this._baseUrl}/signup`;
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, name }),
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
   async login({ email, password }) {
-    this._loading = true;
     const url = `${this._baseUrl}/signin`;
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
@@ -66,61 +62,61 @@ class MainApi {
   }
 
   async checkToken(token) {
-    this._loading = true;
     const url = `${this._baseUrl}/users/me`;
     const headers = { ...this._authHeaders, Authorization: `Bearer ${token}` };
 
-    try {
-      const res = await fetch(url, {
-        headers,
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      headers,
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
   async getUserInfo() {
-    this._loading = true;
     const url = `${this._baseUrl}/users/me`;
 
-    try {
-      const res = await fetch(url, {
-        headers: this._authHeaders,
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      headers: this._authHeaders,
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
   async updateUserInfo({ name, email }) {
-    this._loading = true;
     const url = `${this._baseUrl}/users/me`;
 
-    try {
-      const res = await fetch(url, {
-        method: "PATCH",
-        headers: this._authHeaders,
-        body: JSON.stringify({ name, email }),
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: this._authHeaders,
+      body: JSON.stringify({ name, email }),
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
   async getSavedMovies() {
-    this._loading = true;
     const url = `${this._baseUrl}/movies`;
 
-    try {
-      const res = await fetch(url, {
-        headers: this._authHeaders,
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      headers: this._authHeaders,
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
@@ -128,36 +124,31 @@ class MainApi {
     console.log(" !!! saveMovie: fetch( ", `${this._baseUrl}/movies`);
     const url = `${this._baseUrl}/movies`;
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: this._authHeaders,
-        body: JSON.stringify(movieData),
-      });
-      if (res.ok) {
-        return this._handleResponse(res);
-      } else {
-        throw new Error("Фильм с таким id уже существует");
-      }
-    } catch (error) {
-      console.log(error.message);
-      // Пропускаем ошибку и все равно сохраняем фильм на клиенте
-      return movieData;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this._authHeaders,
+      body: JSON.stringify(movieData),
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 
   async deleteMovie(id) {
-    this._loading = true;
     const url = `${this._baseUrl}/movies/${id}`;
 
-    try {
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: this._authHeaders,
-      });
-      return this._handleResponse(res);
-    } finally {
-      this._loading = false;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this._authHeaders,
+    });
+    if (res.ok) {
+      return this._handleResponse(res); // Возвращаем данные при успешной авторизации
+    } else {
+      const errorData = await res.json(); // Получение данных об ошибке
+      return Promise.reject(errorData); // Возвращаем данные об ошибке
     }
   }
 }

@@ -216,7 +216,3 @@
   font-weight: 500;
   color: var(--error);
 }
-
-.profile__save-message_hidden {
-  display: none;
-}

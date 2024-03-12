@@ -1,5 +1,6 @@
 import { MOVIE_API } from "./apiConfig";
 
+
 class MoviesApi {
   //В конструкторе класса мы передаем объект с параметром `baseUrl`,
   //который указывает на базовый URL для API.

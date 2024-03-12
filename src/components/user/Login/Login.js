@@ -1,37 +1,46 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import React from "react";
 import mainApi from "../../../utils/MainApi";
 import Auth from "../../Auth/Auth";
 import AuthInputForEmail from "../AuthInputForEmail/AuthInputForEmail";
 import AuthInputForPassword from "../AuthInputForPassword/AuthInputForPassword";
 import useForm from "../../../utils/hooks/useFormValidation";
 
-// Заголовки и тексты
+// Константы для текста и заголовков
 const TITLE = "Рады видеть!";
 const HINT_TEXT = "Ещё не зарегистрированы?";
 const HINT_LINK_TEXT = "Регистрация";
 const BUTTON_TEXT = "Войти";
 
-// Ошибки и их тексты
-const REQUEST_ERRORS = {
-  401: "Вы ввели неправильный логин или пароль.",
+export const REQUEST_ERRORS = {
+  SIGNIN_401: "Вы ввели неправильный логин или пароль.",
+  SIGNIN_NO_TOKEN:
+    "При авторизации произошла ошибка. Токен не передан или передан невтом формате.",
+  SIGNIN_INVALID_TOKEN:
+    "При авторизации произошла ошибка. Переданный токен некорректен.",
   SIGNIN_DEFAULT: "При входе произошла ошибка.",
 };
 
 function Login({ onLogin }) {
-  // Начальные значения формы
+  // Использование хука useForm
   const [values, errors, isValid, handleChange] = useForm();
 
-  // Состояния ошибки и загрузки
-  const [requestError, setRequestError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const hint = (
+    <p className="auth__hint">
+      {HINT_TEXT}{" "}
+      <Link to="/signup" className="auth__hint-link">
+        {HINT_LINK_TEXT}
+      </Link>
+    </p>
+  );
 
-  // Обработчик отправки формы
+  const [requestError, setRequestError] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+
   async function handleSubmit(event) {
     event.preventDefault();
-
-    setIsLoading(true); // Включить индикатор загрузки
-    setRequestError(""); // Очистить сообщения об ошибках
+    setIsLoading(true);
+    setRequestError("");
 
     try {
       const res = await mainApi.login(values);
@@ -39,25 +48,23 @@ function Login({ onLogin }) {
         onLogin(res);
       }
     } catch (err) {
-      setRequestError(
-        REQUEST_ERRORS[err.message] || REQUEST_ERRORS.SIGNIN_DEFAULT
-      );
+      let message;
+      switch (err.message) {
+        case "401":
+          message = REQUEST_ERRORS.SIGNIN_401;
+          break;
+        default:
+          message = err?.message || REQUEST_ERRORS.SIGNIN_DEFAULT;
+      }
+      setRequestError(message);
     }
-
-    setIsLoading(false); // Выключить индикатор загрузки
+    setIsLoading(false);
   }
 
   return (
     <Auth
       title={TITLE}
-      hint={
-        <p className="auth__hint">
-          {HINT_TEXT}{" "}
-          <Link to="/signup" className="auth__hint-link">
-            {HINT_LINK_TEXT}
-          </Link>
-        </p>
-      }
+      hint={hint}
       buttonText={BUTTON_TEXT}
       isValid={isValid}
       requestError={requestError}

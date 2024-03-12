@@ -1,9 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import MoviesCard from "../MoviesCard/MoviesCard";
 import "./MoviesCardList.css";
 import More from "../More/More";
 
-import { DEVICE_SETTINGS } from "../../../utils/apiConfig";
+const CARDS_RENDER_COUNT = {
+  1: {
+    initial: 5,
+    add: 2,
+  },
+  2: {
+    initial: 8,
+    add: 2,
+  },
+  3: {
+    initial: 12,
+    add: 3,
+  },
+  default: {
+    initial: 8,
+    add: 4,
+  },
+};
 
 function MoviesCardList({
   movies,
@@ -13,69 +30,58 @@ function MoviesCardList({
 }) {
   const [renderedMovies, setRenderedMovies] = useState([]);
   const grid = useRef();
-  const [cardSettings, setCardSettings] = useState(
-    DEVICE_SETTINGS.narrow.config // Измените на желаемое значение по умолчанию
-  );
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
 
-  const updateCardSettings = (width) => {
-    if (
-      width >= DEVICE_SETTINGS.wide.min &&
-      width <= DEVICE_SETTINGS.wide.max
-    ) {
-      setCardSettings(DEVICE_SETTINGS.wide.config);
-    } else if (
-      width >= DEVICE_SETTINGS.medium.min &&
-      width <= DEVICE_SETTINGS.medium.max
-    ) {
-      setCardSettings(DEVICE_SETTINGS.medium.config);
-    } else if (
-      width >= DEVICE_SETTINGS.narrow.min &&
-      width <= DEVICE_SETTINGS.narrow.max
-    ) {
-      setCardSettings(DEVICE_SETTINGS.narrow.config);
-    }
-  };
-
-  // Обновляем cardSettings при изменении размера окна
-  useEffect(() => {
-    updateCardSettings(viewportWidth);
-
-    const handleResize = () => {
-      setViewportWidth(window.innerWidth);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [viewportWidth]);
+  function countGridColumns(gridElement) {
+    const gridComputedStyle = window.getComputedStyle(gridElement);
+    return gridComputedStyle
+      .getPropertyValue("grid-template-columns")
+      .split(" ").length;
+  }
 
   useEffect(() => {
-    if (isSavedMoviesCardList) {
-      setRenderedMovies(movies);
-    } else {
-      if (movies.length) {
-        const array = movies.slice(0, cardSettings.show);
-        setRenderedMovies(array);
-      }
+    if (movies.length) {
+      const columnsCount = countGridColumns(grid.current);
+      const initialCardsCount =
+        CARDS_RENDER_COUNT[columnsCount]?.initial ??
+        CARDS_RENDER_COUNT["default"].initial;
+      const array = movies.slice(0, initialCardsCount);
+      setRenderedMovies(array);
     }
-  }, [movies, cardSettings.show, isSavedMoviesCardList]);
+  }, [movies]);
 
-  const handleMoreClick = () => {
-    const newStartIndex = renderedMovies.length;
-    const newEndIndex = newStartIndex + cardSettings.add;
-    setRenderedMovies(movies.slice(0, newEndIndex));
-  };
+  function handleMoreClick() {
+    const columnsCount = countGridColumns(grid.current);
+    const renderedCountFixed =
+      Math.ceil(renderedMovies.length / columnsCount) * columnsCount;
+    const moreCardsCount =
+      CARDS_RENDER_COUNT[columnsCount]?.add ??
+      CARDS_RENDER_COUNT["default"].add;
+    const array = movies.slice(0, renderedCountFixed + moreCardsCount);
+    setRenderedMovies(array);
+  }
 
-  const checkIsMovieSaved = (movie) => {
+  // function Message({ text, isError = false }) {
+  //   return (
+  //     <div className="message section">
+  //       <p
+  //         className={`message__text ${
+  //           isError ? "message__text_type_error" : ""
+  //         }`}
+  //       >
+  //         {text}
+  //       </p>
+  //     </div>
+  //   );
+  // }
+
+  function checkIsMovieSaved(movie) {
     if (Array.isArray(savedMovies)) {
       return savedMovies.some(
         (savedMovie) => savedMovie.movieId === movie.movieId
       );
     }
     return false; // По умолчанию считаем, что фильм не сохранен
-  };
+  }
 
   return (
     <>

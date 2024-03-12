@@ -1,4 +1,4 @@
-const cards = [
+const cards11 = [
   {
     country: "США",
     director: "Стивен Кайак ",
@@ -723,4 +723,4 @@ const cards = [
   // },
 ];
 
-export default cards;
+export default cards11;

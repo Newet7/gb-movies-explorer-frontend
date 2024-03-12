@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import "./Header.css";
 import logo from "../../images/logo.svg";
 import { NavLink } from "react-router-dom";
+import classNames from "classnames";
 import CurrentUserContext from "../../context/CurrentUserContext";
 import AuthLinks from "../AuthLinks/AuthLinks";
 import Navigation from "../Navigation/Navigation";
@@ -10,7 +11,9 @@ function Header({ isThemed = false }) {
   const currentUser = useContext(CurrentUserContext);
   return (
     // <header className={`header section${isThemed ? " header_themed" : ""}`}>
-    <header className={`header section${isThemed ? " header_themed" : ""}`}>
+    <header
+      className={classNames("header", "section", { header_themed: isThemed })}
+    >
       <NavLink
         className="header__main-link"
         to="/"
